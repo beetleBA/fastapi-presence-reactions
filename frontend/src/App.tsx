@@ -1,122 +1,79 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState } from "react";
 
+type FlyingEmojis = {
+  emoji: string;
+  randomX: string;
+  speed: string;
+};
 function App() {
-  const [count, setCount] = useState(0)
+  const [reactions, setReactions] = useState<Record<string, number>>({
+    "😊": 0,
+    "😒": 0,
+    "💕": 0,
+    "😍": 0,
+    "👍": 0,
+    "😘": 0,
+  });
+  const [flyingEmojis, setFlyingEmojis] = useState<FlyingEmojis[]>([]);
 
+  const sendReaction = (emoji: string) => {
+    const randomX = Math.floor(Math.random() * (15 - -15 + 1)) + -15 + "px";
+    const speed = Math.floor(Math.random() * (6 - 4 + 1)) + 4 + "s";
+    setFlyingEmojis((prev) => [...prev, { emoji, randomX, speed }]);
+    console.log(flyingEmojis);
+    reactions[emoji] += 1 
+  };
+
+  const [online, setOnline] = useState(0);
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
+    <div className="min-h-screen flex items-center justify-center dark:bg-neutral-900">
+      <div className="reaction-container">
+        {flyingEmojis.map((item, index) => (
+          <span
+            key={index}
+            className="reaction"
+            style={
+              {
+                "--random-x": item.randomX,
+                "--speed": item.speed,
+              } as React.CSSProperties
+            }
+          >
+            {item.emoji}
+          </span>
+        ))}
+      </div>
+      <div className="flex flex-col gap-4">
+        <div className="relative px-2">
+          <div className="absolute top-0.5 right-4 flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+          </div>
+          <p className="text-right pr-8 text-xs uppercase tracking-widest font-medium text-neutral-400 dark:text-neutral-500">
+            {online} пользователей
           </p>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-3 max-w-xl">
+          {Object.entries(reactions).map(([emoji, count], index) => (
+            <button
+              key={index}
+              className="select-none flex items-center justify-center gap-3 
+              dark:bg-neutral-800 bg-neutral-50 py-2 px-5 rounded-full 
+              border dark:border-neutral-700 border-neutral-100 shadow-2xs
+              hover:bg-neutral-100 dark:hover:bg-neutral-700"
+              onClick={() => sendReaction(emoji)}
+            >
+              <span className="text-2xl hover:scale-105">{emoji}</span>
+              <span className="text-xl font-medium dark:text-neutral-400 text-neutral-300">
+                {count}
+              </span>
+            </button>
+          ))}
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      </div>
+    </div>
+  );
 }
 
-export default App
+export default App;
