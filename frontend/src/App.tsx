@@ -1,30 +1,60 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type FlyingEmojis = {
   emoji: string;
   randomX: string;
   speed: string;
 };
+
 function App() {
-  const [reactions, setReactions] = useState<Record<string, number>>({
-    "😊": 0,
-    "😒": 0,
-    "💕": 0,
-    "😍": 0,
-    "👍": 0,
-    "😘": 0,
-  });
+  const [online, setOnline] = useState(0);
+  const [reactions, setReactions] = useState<Record<string, number>>({});
   const [flyingEmojis, setFlyingEmojis] = useState<FlyingEmojis[]>([]);
 
+  const socketRef = useRef<WebSocket | null>(null);
+
+  useEffect(() => {
+    const socket = new WebSocket("ws://127.0.0.1:8000/ws/reactions");
+    socketRef.current = socket;
+
+    socket.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        setOnline(data.online);
+        setReactions(data.reactions);
+
+        if (data.new_reaction) {
+          const randomX =
+            Math.floor(Math.random() * (15 - -15 + 1)) + -15 + "px";
+          const speed = Math.floor(Math.random() * (6 - 4 + 1)) + 4 + "s";
+          setFlyingEmojis((prev) => [
+            ...prev,
+            { emoji: data.new_reaction, randomX, speed },
+          ]);
+        }
+      } catch (e) {
+        console.error(`Error: ${e}`);
+      }
+    };
+    socket.onerror = (e) => {
+      console.error(`Error: ${e}`);
+    };
+    return () => {
+      socket.close();
+    };
+  }, []);
+
   const sendReaction = (emoji: string) => {
-    const randomX = Math.floor(Math.random() * (15 - -15 + 1)) + -15 + "px";
-    const speed = Math.floor(Math.random() * (6 - 4 + 1)) + 4 + "s";
-    setFlyingEmojis((prev) => [...prev, { emoji, randomX, speed }]);
-    console.log(flyingEmojis);
-    reactions[emoji] += 1 
+    if (socketRef.current && socketRef.current.readyState == WebSocket.OPEN) {
+      socketRef.current.send(
+        JSON.stringify({
+          action: "react",
+          emoji: emoji
+        })
+      )
+    }
   };
 
-  const [online, setOnline] = useState(0);
   return (
     <div className="min-h-screen flex items-center justify-center dark:bg-neutral-900">
       <div className="reaction-container">
