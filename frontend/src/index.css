@@ -4,14 +4,14 @@
   height: 100vh;
   overflow-y: hidden;
   position: absolute;
-  padding-left: 1rem;
+  padding-left: 3rem;
   width: 200px;
   left: 0;
 }
 
 .reaction {
   position: absolute;
-  font-size: 40px;
+  font-size: 60px;
   animation: move var(--speed, 5s) ease-in forwards;
   bottom: 0;
 }

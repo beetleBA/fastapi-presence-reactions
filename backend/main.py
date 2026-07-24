@@ -5,8 +5,8 @@ app = FastAPI()
 AVAILABLE_REACTIONS = {
     "🔥": 0,
     "❤️": 0,
-    "👏": 0,
-    "🎉": 0,
+    "😂": 0,
+    "😒": 0,
     "😮": 0
 }
 
@@ -20,13 +20,14 @@ class ConnectionManager:
         await self.broadcast()
 
     def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
 
     def add_reaction(self, reaction):
         if reaction in AVAILABLE_REACTIONS:
             AVAILABLE_REACTIONS[reaction] += 1
 
-    async def broadcast(self, new_reaction = None):
+    async def broadcast(self, new_reaction=None):
         count = len(self.active_connections)
         for connection in self.active_connections[:]:
             try:
@@ -52,6 +53,7 @@ async def websocket_online(websocket: WebSocket):
                 manager.add_reaction(reaction)
                 await manager.broadcast(new_reaction=reaction)
 
-    except WebSocketDisconnect:
+    except (WebSocketDisconnect, RuntimeError, Exception) as e:
+        print(f"Соединение закрыто или прервано: {e}")
         manager.disconnect(websocket)
         await manager.broadcast()
